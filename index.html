@@ -1,0 +1,663 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>j/e</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: white;
+    color: black;
+}
+
+/* ШАПКА */
+
+header {
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.logo {
+    font-size: 35px;
+    font-weight: 900;
+    letter-spacing: -4px;
+    transform: skew(-15deg);
+}
+
+.cart-btn {
+    position: absolute;
+    right: 12px;
+    top: 0;
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.cart-btn:hover {
+    background: black;
+}
+
+/* КАТАЛОГ */
+
+.container {
+    max-width: 1450px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.products {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 90px 50px;
+}
+
+.product {
+    text-align: center;
+}
+
+.product img {
+    width: 100%;
+    height: 430px;
+    object-fit: contain;
+    transition: 0.3s;
+}
+
+.product img:hover {
+    transform: scale(1.04);
+}
+
+.product h3 {
+    font-size: 19px;
+    font-weight: 400;
+    margin: 15px 0;
+}
+
+.price {
+    margin-bottom: 12px;
+    color: #555;
+}
+
+button {
+    cursor: pointer;
+}
+
+.add-btn {
+    background: black;
+    color: white;
+    border: none;
+    padding: 11px 25px;
+    width: 185px;
+    font-size: 16px;
+}
+
+.add-btn:hover {
+    background: #444;
+}
+
+.more-btn {
+    background: white;
+    border: 1px solid black;
+    padding: 10px 15px;
+    margin-top: 7px;
+}
+
+/* КОРЗИНА */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    width: 500px;
+    max-width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 30px;
+    border: none;
+    background: none;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.cart-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.cart-info {
+    flex: 1;
+}
+
+.quantity {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.quantity button {
+    padding: 4px 10px;
+}
+
+.remove {
+    color: red;
+    background: none;
+    border: none;
+    margin-top: 8px;
+}
+
+.total {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 25px 0;
+}
+
+.checkout {
+    width: 100%;
+    padding: 15px;
+    background: black;
+    color: white;
+    border: none;
+    font-size: 16px;
+}
+
+.empty {
+    padding: 30px 0;
+    text-align: center;
+    color: #777;
+}
+
+/* ОКНО ТОВАРА */
+
+.detail-img {
+    width: 100%;
+    height: 250px;
+    object-fit: contain;
+}
+
+.detail-description {
+    margin: 15px 0;
+    line-height: 1.5;
+}
+
+/* ТЕЛЕФОН */
+
+@media(max-width: 750px) {
+    .products {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 45px 15px;
+    }
+
+    .product img {
+        height: 250px;
+    }
+
+    .product h3 {
+        font-size: 15px;
+    }
+
+    .add-btn {
+        width: 100%;
+    }
+}
+
+@media(max-width: 450px) {
+    .products {
+        grid-template-columns: 1fr;
+    }
+
+    .product img {
+        height: 330px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">j/e</div>
+
+    <button class="cart-btn" onclick="openCart()">
+        🛒 Корзина (<span id="cart-count">0</span>)
+    </button>
+
+</header>
+
+
+<main class="container">
+
+    <div class="products" id="products"></div>
+
+</main>
+
+
+<!-- КОРЗИНА -->
+
+<div class="modal" id="cart-modal">
+
+    <div class="modal-content">
+
+        <button class="close" onclick="closeCart()">×</button>
+
+        <h2>Корзина</h2>
+
+        <div id="cart-items"></div>
+
+        <div class="total">
+            Итого: <span id="total">0</span> ₸
+        </div>
+
+        <button class="checkout" onclick="checkout()">
+            Оформить заказ
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ПОДРОБНЕЕ -->
+
+<div class="modal" id="detail-modal">
+
+    <div class="modal-content">
+
+        <button class="close" onclick="closeDetails()">×</button>
+
+        <div id="detail-content"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+// ТОВАРЫ
+
+const products = [
+
+    {
+        id: 1,
+        name: "Volition Bag",
+        price: 12000,
+        image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=700",
+        description: "Стильная сумка Volition. Удобная и практичная модель на каждый день."
+    },
+
+    {
+        id: 2,
+        name: "LOW KARMA loose T-shirt",
+        price: 15000,
+        image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=700",
+        description: "Свободная футболка LOW KARMA с оригинальным дизайном."
+    },
+
+    {
+        id: 3,
+        name: "Финансовый риск",
+        price: 14000,
+        image: "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=700",
+        description: "Яркая футболка с необычным принтом."
+    },
+
+    {
+        id: 4,
+        name: "Green Volition",
+        price: 13500,
+        image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=700",
+        description: "Зелёная футболка Volition."
+    },
+
+    {
+        id: 5,
+        name: "Basic White",
+        price: 11000,
+        image: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=700",
+        description: "Базовая белая футболка."
+    },
+
+    {
+        id: 6,
+        name: "Classic T-shirt",
+        price: 12500,
+        image: "https://images.unsplash.com/photo-1527719327859-c6ce80353573?w=700",
+        description: "Классическая футболка на каждый день."
+    }
+
+];
+
+
+// КОРЗИНА
+
+let cart = [];
+
+
+// ВЫВОД ТОВАРОВ
+
+function renderProducts() {
+
+    const container = document.getElementById("products");
+
+    container.innerHTML = "";
+
+    products.forEach(product => {
+
+        container.innerHTML += `
+
+            <div class="product">
+
+                <img src="${product.image}" alt="${product.name}">
+
+                <h3>${product.name}</h3>
+
+                <p class="price">${product.price.toLocaleString("ru-RU")} ₸</p>
+
+                <button class="add-btn"
+                onclick="addToCart(${product.id})">
+
+                    В корзину
+
+                </button>
+
+                <br>
+
+                <button class="more-btn"
+                onclick="showDetails(${product.id})">
+
+                    Подробнее
+
+                </button>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+// ДОБАВИТЬ В КОРЗИНУ
+
+function addToCart(id) {
+
+    const item = cart.find(product => product.id === id);
+
+    if (item) {
+
+        item.quantity++;
+
+    } else {
+
+        cart.push({
+            id: id,
+            quantity: 1
+        });
+
+    }
+
+    updateCart();
+
+}
+
+
+// ОБНОВЛЕНИЕ КОРЗИНЫ
+
+function updateCart() {
+
+    const container = document.getElementById("cart-items");
+
+    container.innerHTML = "";
+
+    let total = 0;
+    let count = 0;
+
+    if (cart.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty">Корзина пока пуста</div>
+        `;
+
+    }
+
+    cart.forEach(item => {
+
+        const product = products.find(p => p.id === item.id);
+
+        total += product.price * item.quantity;
+
+        count += item.quantity;
+
+        container.innerHTML += `
+
+            <div class="cart-item">
+
+                <img src="${product.image}" alt="">
+
+                <div class="cart-info">
+
+                    <b>${product.name}</b>
+
+                    <p>${product.price.toLocaleString("ru-RU")} ₸</p>
+
+                    <div class="quantity">
+
+                        <button onclick="changeQuantity(${product.id}, -1)">−</button>
+
+                        ${item.quantity}
+
+                        <button onclick="changeQuantity(${product.id}, 1)">+</button>
+
+                    </div>
+
+                    <button class="remove"
+                    onclick="removeItem(${product.id})">
+
+                        Удалить
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+    document.getElementById("total").textContent =
+        total.toLocaleString("ru-RU");
+
+    document.getElementById("cart-count").textContent = count;
+
+}
+
+
+// ИЗМЕНЕНИЕ КОЛИЧЕСТВА
+
+function changeQuantity(id, amount) {
+
+    const item = cart.find(product => product.id === id);
+
+    if (!item) return;
+
+    item.quantity += amount;
+
+    if (item.quantity <= 0) {
+
+        removeItem(id);
+
+    } else {
+
+        updateCart();
+
+    }
+
+}
+
+
+// УДАЛЕНИЕ
+
+function removeItem(id) {
+
+    cart = cart.filter(product => product.id !== id);
+
+    updateCart();
+
+}
+
+
+// ОТКРЫТЬ КОРЗИНУ
+
+function openCart() {
+
+    updateCart();
+
+    document.getElementById("cart-modal").style.display = "flex";
+
+}
+
+
+// ЗАКРЫТЬ КОРЗИНУ
+
+function closeCart() {
+
+    document.getElementById("cart-modal").style.display = "none";
+
+}
+
+
+// ПОДРОБНЕЕ О ТОВАРЕ
+
+function showDetails(id) {
+
+    const product = products.find(p => p.id === id);
+
+    document.getElementById("detail-content").innerHTML = `
+
+        <img class="detail-img" src="${product.image}">
+
+        <h2>${product.name}</h2>
+
+        <p class="detail-description">
+            ${product.description}
+        </p>
+
+        <h3>${product.price.toLocaleString("ru-RU")} ₸</h3>
+
+        <br>
+
+        <button class="checkout"
+        onclick="addToCart(${product.id}); closeDetails();">
+
+            Добавить в корзину
+
+        </button>
+
+    `;
+
+    document.getElementById("detail-modal").style.display = "flex";
+
+}
+
+
+// ЗАКРЫТЬ ПОДРОБНОСТИ
+
+function closeDetails() {
+
+    document.getElementById("detail-modal").style.display = "none";
+
+}
+
+
+// ОФОРМЛЕНИЕ ЗАКАЗА
+
+function checkout() {
+
+    if (cart.length === 0) {
+
+        alert("Корзина пуста!");
+
+        return;
+
+    }
+
+    let message = "Ваш заказ:\n\n";
+
+    let total = 0;
+
+    cart.forEach(item => {
+
+        const product = products.find(p => p.id === item.id);
+
+        message += product.name + " x " + item.quantity + "\n";
+
+        total += product.price * item.quantity;
+
+    });
+
+    message += "\nИтого: " + total.toLocaleString("ru-RU") + " ₸";
+
+    alert(message + "\n\nСпасибо за заказ!");
+
+    cart = [];
+
+    updateCart();
+
+    closeCart();
+
+}
+
+
+// ЗАПУСК
+
+renderProducts();
+
+updateCart();
+
+</script>
+
+</body>
+</html>
